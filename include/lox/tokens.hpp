@@ -104,7 +104,8 @@ public:
     auto to_string() -> std::string
     {
 
-        std::string_view lit;
+        std::string lit, lexeme;
+        lexeme = lexeme_;
         std::visit(overloaded {
                        [&](const int& v) { lit = std::to_string(v); },
                        [&](const double& v) { lit = std::to_string(v); },
@@ -112,7 +113,8 @@ public:
                            lit = text;
                        } },
             literal_);
-        return "TokenType: " + std::to_string(as_integer(type_)) + ", Lexeme: " + lexeme_.data() + ", Literal: " + lit.data();
+        
+        return "TokenType: " + std::to_string(as_integer(type_)) + ", Lexeme: " + lexeme + ", Literal: " + lit;
     }
 };
 }

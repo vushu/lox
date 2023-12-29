@@ -19,7 +19,7 @@ auto Scanner::scan_tokens() -> std::vector<Token>
 
 auto Scanner::scan_token() -> void
 {
-    char c = advance();
+    auto c = advance();
     switch (c) {
     case '(':
         add_token(TokenType::left_paren_tok);
@@ -104,7 +104,7 @@ auto Scanner::handle_identifier() -> void
     }
 
     auto text = source_.substr(start_, current_ - start_);
-    // see if any keywordsj
+    // see if any keywords
     auto iter = keywords.find(text);
     auto type = TokenType::identifier_tok;
     if (iter != keywords.end()) {
@@ -126,10 +126,7 @@ auto Scanner::handle_number() -> void
     }
 
     auto text = source_.substr(start_, current_ - start_);
-    double line;
-    std::from_chars(text.data(), text.data() + text.size(), line);
-
-    add_token(TokenType::number_tok, text, line);
+    add_token(TokenType::number_tok, text, std::stod(text.data()));
 }
 
 auto Scanner::match(char expected) -> bool
@@ -158,7 +155,7 @@ auto Scanner::peek() -> char
     if (is_at_end()) {
         return '\0';
     }
-    return source_[current_ + 1];
+    return source_[current_];
 }
 
 auto Scanner::add_token(TokenType type) -> void

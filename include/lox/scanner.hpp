@@ -25,7 +25,9 @@ private:
     auto scan_token() -> void;
     auto add_token(TokenType type) -> void;
     auto add_token(TokenType type, std::string_view lexeme, LiteralType literal) -> void;
-    auto advance() -> char { return source_[current_++]; }
+    auto advance() -> char const { 
+       return source_[current_++];
+    }
     auto handle_identifier() -> void;
     auto handle_number() -> void;
 
