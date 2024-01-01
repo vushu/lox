@@ -6,7 +6,7 @@
 namespace lox
 {
 
-    // Value semantic wrapper inspired by rust box type
+    // Value semantic wrapper inspired by rust Box type
     template <typename T>
     class Box
     {

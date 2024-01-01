@@ -2,7 +2,6 @@
 #include "lox/scanner.hpp"
 #include <string_view>
 #include <vector>
-#include <charconv>
 
 namespace lox {
 
@@ -70,7 +69,7 @@ auto Scanner::scan_token() -> void
                 advance();
             }
         } else {
-            add_token(TokenType::slash);
+            add_token(TokenType::slash_tok);
         }
         break;
     case ' ':

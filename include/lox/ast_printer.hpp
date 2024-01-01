@@ -6,7 +6,6 @@ class ASTPrinter
 {
 private:
 public:
-    // using Expr = std::variant<Unary, Binary, Grouping, Literal, Variable>;
     ASTPrinter() = default;
     ~ASTPrinter() = default;
 
