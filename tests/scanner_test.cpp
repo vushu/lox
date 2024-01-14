@@ -15,7 +15,7 @@ int main()
    }
 
    lox::Parser parser{tokens};
-   parser.parse();
+   parser.parse_expression();
 
 
    return 0;

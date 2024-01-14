@@ -1,106 +1,102 @@
 #ifndef AST_HPP
 #define AST_HPP
-#include <variant>
 #include "tokens.hpp"
+
 #include <memory>
-namespace lox
-{
+#include <variant>
 
-    // Value semantic wrapper inspired by rust Box type
-    template <typename T>
-    class Box
-    {
-        // Wrapper over unique_ptr
-        // Is used to make value semantic on top of unique pointer
-    private:
-        std::unique_ptr<T> impl_;
+namespace lox {
 
-    public:
-        // Automatic construction from a T, not a T*
-        // takes value type and basically puts it into a unique_ptr
-        Box(T &&obj) : impl_(std::make_unique<T>(std::move(obj))) {}
-        Box(const T &obj) : impl_(std::make_unique<T>(std::move(obj))) {}
+// Value semantic wrapper inspired by rust Box type
+template <typename T>
+class Box {
+	// Wrapper over unique_ptr
+	// Is used to make value semantic on top of unique pointer
+private:
+	std::unique_ptr<T> impl_;
 
-        // Copy constructor copies T
-        Box(const Box &other) : Box(*other.impl_) {}
-        Box &operator=(const Box &other)
-        {
-            *impl_ = *other.impl_;
-            return *this;
-        }
+public:
+	// Automatic construction from a T, not a T*
+	// takes value type and basically puts it into a unique_ptr
+	Box(T&& obj) : impl_(std::make_unique<T>(std::move(obj))) {}
 
-        ~Box() = default;
+	Box(const T& obj) : impl_(std::make_unique<T>(std::move(obj))) {}
 
-        T &operator*() { return *impl_; }
-        const T &operator*() const { return *impl_; }
+	// Copy constructor copies T
+	Box(const Box& other) : Box(*other.impl_) {}
 
-        T *operator->() { return impl_.get(); }
-        const T *operator->() const { return impl_.get(); }
-    };
+	Box& operator=(const Box& other) {
+		*impl_ = *other.impl_;
+		return *this;
+	}
 
-    struct Unary;
-    struct Binary;
-    struct Grouping;
-    struct Literal;
-    struct Variable;
-    struct Expression;
-    struct Print;
-    struct Var;
-    struct Binary;
-    struct Grouping;
-    struct Literal;
-    struct Variable;
-    struct Expression;
-    struct Print;
-    struct Var;
+	~Box() = default;
 
-    struct ExprContainer;
+	T& operator*() { return *impl_; }
 
-    using Expr = std::variant<Box<Unary>, Box<Binary>, Box<Grouping>,Box<Literal>, Box<Variable>>;
-    using Stmt = std::variant<Box<Expression>, Box<Print>, Box<Var>>;
+	const T& operator*() const { return *impl_; }
 
-    struct Binary
-    {
-        Expr left, right;
-        Token op;
-    };
+	T* operator->() { return impl_.get(); }
 
-    struct Grouping
-    {
-        Expr expression;
-    };
+	const T* operator->() const { return impl_.get(); }
+};
 
-    struct Literal
-    {
-        LiteralType value;
-    };
+struct Unary;
+struct Binary;
+struct Grouping;
+struct Literal;
+struct Variable;
+struct Expression;
+struct Print;
+struct Var;
+struct Logical;
+struct Get;
 
-    struct Variable
-    {
-        Token token;
-    };
+using Expr = std::variant<Box<Unary>, Box<Binary>, Box<Grouping>, Box<Literal>, Box<Variable>, Box<Logical>, Box<Get>>;
 
-    struct Expression
-    {
-        Expr expression;
-    };
+struct Logical {
+	Expr left, right;
+	Token op;
+};
 
-    struct Print
-    {
-        Expr expression;
-    };
+struct Binary {
+	Expr left, right;
+	Token op;
+};
 
-    struct Var
-    {
-        Token token;
-        Expr initializer;
-    };
+struct Grouping {
+	Expr expression;
+};
 
-    struct Unary
-    {
-        Token op;
-        Expr right;
-    };
+struct Literal {
+	LiteralType value;
+};
 
-}
+struct Variable {
+	Token token;
+};
+
+struct Expression {
+	Expr expression;
+};
+
+struct Print {
+	Expr expression;
+};
+
+struct Var {
+	Token token;
+	Expr initializer;
+};
+
+struct Unary {
+	Token op;
+	Expr right;
+};
+
+struct Get {
+	Expr value;
+};
+
+}  // namespace mirscript
 #endif

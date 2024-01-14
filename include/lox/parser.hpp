@@ -1,8 +1,15 @@
 #ifndef PARSER_HPP
 #define PARSER_HPP
 #include "ast.hpp"
+
+#include <iostream>
 #include <span>
 #include <vector>
+#include <optional>
+#include "lox/lox.hpp"
+
+#include <lox/tokens.hpp>
+
 namespace lox
 {
     class Parser
@@ -10,16 +17,11 @@ namespace lox
     private:
         std::span<Token> tokens_;
         int current_ = 0;
-        std::vector<Stmt> statements_;
-        auto is_at_end() const -> bool
-        {
-            return peek().get_type() == TokenType::eof_tok;
-        }
+        std::vector<Expr> expressions_;
 
-        auto peek() const -> const Token &
-        {
-            return tokens_[current_];
-        }
+        [[nodiscard]] auto is_at_end() const -> bool { return peek().get_type() == TokenType::eof_tok; }
+
+        [[nodiscard]] auto peek() const -> const Token & { return tokens_[current_]; }
 
         auto advance() -> const Token &
         {
@@ -30,12 +32,9 @@ namespace lox
             return previous();
         }
 
-        auto previous() const -> const Token &
-        {
-            return tokens_[current_ - 1];
-        }
+        [[nodiscard]] auto previous() const -> const Token & { return tokens_[current_ - 1]; }
 
-        auto check(TokenType type) const -> bool
+        [[nodiscard]] auto check(TokenType type) const -> bool
         {
             if (is_at_end())
             {
@@ -44,7 +43,7 @@ namespace lox
             return peek().get_type() == type;
         }
 
-        auto match(std::span<TokenType> types) -> bool
+        auto match(std::vector<TokenType> types) -> bool
         {
             for (auto type : types)
             {
@@ -64,7 +63,19 @@ namespace lox
                 return advance();
             }
             std::cout << message << " Error" << std::endl;
+            throw LoxException("Expected " + std::string{message});
         }
+
+        auto or_expression() -> Expr;
+        auto and_expression() -> Expr;
+        auto equality() -> Expr;
+        auto comparison() -> Expr;
+        auto term() -> Expr;
+        auto factor() -> Expr;
+        auto unary() -> Expr;
+        auto primary() -> Expr;
+        auto expression() -> Expr;
+        auto get_expression() -> Expr;
 
         auto synchronize() -> void
         {
@@ -95,7 +106,7 @@ namespace lox
         Parser(std::span<Token> tokens);
         Parser() = default;
 
-        auto parse() -> std::span<Stmt>;
+        auto parse_expression() -> std::span<Expr>;
     };
 
 }

@@ -1,13 +1,26 @@
 #ifndef TOKENS_HPP
 #define TOKENS_HPP
-#include <iostream>
+
 #include <map>
 #include <string>
 #include <string_view>
 #include <variant>
+
 namespace lox
 {
-    using LiteralType = std::variant<double, int, std::string_view>;
+
+    template <class... Ts>
+    struct visit_overloader : Ts...
+    {
+        using Ts::operator()...;
+    };
+
+    // Some compilers might require this explicit deduction guide
+    template <class... Ts>
+    visit_overloader(Ts...) -> visit_overloader<Ts...>;
+
+    using LiteralType = std::variant<std::monostate, double, bool, std::string_view>;
+    using EvalResult = std::variant<std::monostate, double, bool, std::string>;
     enum class TokenType
     {
         left_paren_tok,  // 0
@@ -19,7 +32,7 @@ namespace lox
         minus_tok,       // 6
         plus_tok,        // 7
         semicolon_tok,   // 8
-        slash_tok,           // 9
+        slash_tok,       // 9
         star_tok,        // 10
 
         bang_tok,          // 11
@@ -54,24 +67,62 @@ namespace lox
         eof_tok     // 38
     };
 
-    template <class... Ts>
-    struct overloaded : Ts...
-    {
-        using Ts::operator()...;
+    inline std::map<TokenType, std::string> token_names =
+        {
+            {TokenType::left_paren_tok, "left paren"},
+            {TokenType::right_paren_tok, "right paren"},
+            {TokenType::left_brace_tok, "left brace"},
+            {TokenType::right_brace_tok, "right brace"},
+            {TokenType::comma_tok, "comma"},
+            {TokenType::dot_tok, "dot"},
+            {TokenType::minus_tok, "minus"},
+            {TokenType::plus_tok, "plus"},
+            {TokenType::semicolon_tok, "semicolon"},
+            {TokenType::slash_tok, "slash"},
+            {TokenType::star_tok, "star"},
+
+            {TokenType::bang_tok, "bang"},
+            {TokenType::bang_equal_tok, "bang equal"},
+            {TokenType::equal_tok, "equal"},
+            {TokenType::equal_equal_tok, "equal equal"},
+            {TokenType::greater_tok, "greater"},
+            {TokenType::greater_equal_tok, "greater equal"},
+            {TokenType::less_tok, "less"},
+            {TokenType::less_equal_tok, "less equal"},
+
+            {TokenType::identifier_tok, "identifier"},
+            {TokenType::string_tok, "string"},
+            {TokenType::number_tok, "number"},
+
+            {TokenType::and_tok, "and"},
+            {TokenType::class_tok, "class"},
+            {TokenType::else_tok, "else"},
+            {TokenType::false_tok, "false"},
+            {TokenType::fun_tok, "fun"},
+            {TokenType::for_tok, "for"},
+            {TokenType::if_tok, "if"},
+            {TokenType::nil_tok, "nil"},
+            {TokenType::or_tok, "or"},
+            {TokenType::print_tok, "print"},
+            {TokenType::return_tok, "return"},
+            {TokenType::super_tok, "super"},
+            {TokenType::this_tok, "this"},
+            {TokenType::true_tok, "true"},
+            {TokenType::var_tok, "var"},
+            {TokenType::while_tok, "while"},
+            {TokenType::eof_tok, "end of file"}
+
     };
 
-    // Some compilers might require this explicit deduction guide
-    template <class... Ts>
-    overloaded(Ts...) -> overloaded<Ts...>;
-
     template <typename T>
-    auto as_integer(T const value) -> typename std::underlying_type<T>::type
+    auto as_integer(T const value)
+        -> typename std::underlying_type<T>::type
     {
         return static_cast<typename std::underlying_type<T>::type>(value);
     }
 
     inline std::map<std::string_view, TokenType> keywords = {
-        {"and", TokenType::eof_tok},
+        {"and", TokenType::and_tok},
         {"class", TokenType::class_tok},
         {"else", TokenType::else_tok},
         {"false", TokenType::false_tok},
@@ -98,32 +149,30 @@ namespace lox
 
     public:
         Token(TokenType type, std::string_view lexeme, LiteralType literal, unsigned int line)
-            : type_(type), lexeme_(lexeme), literal_(literal), line_(line)
-        {
-        }
+            : type_(type), lexeme_(lexeme), literal_(literal), line_(line) {}
 
-        auto get_type() const -> const TokenType
-        {
-            return type_;
-        }
+        [[nodiscard]] auto get_type() const -> const TokenType { return type_; }
 
-        auto to_string() const -> std::string
-        {
+        [[nodiscard]] auto get_literal() const -> const LiteralType { return literal_; }
 
+        [[nodiscard]] auto to_string() const -> std::string
+        {
             std::string lit, lexeme;
             lexeme = lexeme_;
-            std::visit(overloaded{[&](const int &v)
-                                  { lit = std::to_string(v); },
-                                  [&](const double &v)
-                                  { lit = std::to_string(v); },
-                                  [&](const std::string_view &text)
-                                  {
-                                      lit = text;
-                                  }},
+            std::visit(visit_overloader{[&](const int &v)
+                                        { lit = std::to_string(v); },
+                                        [&](const double &v)
+                                        { lit = std::to_string(v); },
+                                        [&](const std::string_view &text)
+                                        { lit = text; },
+                                        [&](const std::monostate &v)
+                                        { lit = "nil"; },
+                                        [&](const bool &v)
+                                        { lit = std::to_string(v); }},
                        literal_);
 
-            return "TokenType: " + std::to_string(as_integer(type_)) + ", Lexeme: " + lexeme + ", Literal: " + lit;
-        }
+            return "TokenType: " + token_names.at(type_) + ", Lexeme: " + lexeme + ", Literal: " + lit;
+        } // namespace mirscript
     };
-}
+} // namespace mirscript
 #endif
